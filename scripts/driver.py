@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 
-from odrive.enums import AXIS_STATE_CLOSED_LOOP_CONTROL, AXIS_STATE_IDLE, \
-    CONTROL_MODE_VELOCITY_CONTROL, INPUT_MODE_VEL_RAMP
+# ROS imports
 import rospy
-import odrive
-
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Header
+
+# Python imports
 from math import pi
+import odrive
+from odrive.enums import (AXIS_STATE_CLOSED_LOOP_CONTROL, AXIS_STATE_IDLE,
+                          CONTROL_MODE_VELOCITY_CONTROL, INPUT_MODE_VEL_RAMP)
 
 
 class Motor:
+
     def __init__(self, namespace, axis) -> None:
         self.namespace = namespace
         self.axis = axis
@@ -20,8 +23,7 @@ class Motor:
         self.transmission = rospy.get_param(f"{namespace}transmission", 1)
 
         self.axis.controller.config.input_mode = INPUT_MODE_VEL_RAMP
-        self.axis.controller.config.control_mode = \
-            CONTROL_MODE_VELOCITY_CONTROL
+        self.axis.controller.config.control_mode = CONTROL_MODE_VELOCITY_CONTROL
 
         self.torque_constant = self.axis.motor.config.torque_constant
 
@@ -57,14 +59,15 @@ class Motor:
                 self.axis.requested_state = AXIS_STATE_IDLE
         elif self.axis.current_state != AXIS_STATE_CLOSED_LOOP_CONTROL:
             self.axis.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
-        self.axis.controller.input_vel = msg.velocity[
-            0] * self.direction * self.transmission / (2 * pi)
+        self.axis.controller.input_vel = msg.velocity[0] * \
+            self.direction * self.transmission / (2 * pi)
 
     def disable(self):
         self.axis.requested_state = AXIS_STATE_IDLE
 
 
 class Driver:
+
     def __init__(self, namespace) -> None:
         self.namespace = namespace
         self.serial_number = rospy.get_param(f"{namespace}serial_number")
@@ -93,6 +96,7 @@ class Driver:
 
 
 class Node:
+
     def __init__(self, name) -> None:
         rospy.init_node(name, anonymous=True)
 
